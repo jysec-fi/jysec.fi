@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JySec - Home</title>
+  <link rel="stylesheet" href="https://jysec.fi/css/style.css">
+
+  
+  <link rel="icon" href="https://jysec.fi/images/favicon.png">
+  
+</head>
+<body>
+  
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>JYSEC</h1>
+    <p>Information & Cyber Security Community of Jyväskylä</p>
+    <!-- Down Arrow -->
+    <div class="arrow">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Content Section -->
+  <section id="content" class="content">
+    <div class="content-inner">
+      <h2>MEETUPS</h2>
+           
+      <p class="notice">Next meetup to be determined.</p>
+      <p>Past meetups can be found <a href="https://jysec.fi/meetups/">here</a></p>
+      <h2>WHAT IS JYSEC?</h2>
+      <p> 
+      JySec gathers people together that are interested in Information and Cyber Security in Central Finland. The purpose is to organise meetups and get-togethers to learn, connect, discuss and have fun in the field of InfoSec and CyberSec.
+      <br><br>
+      JySec is part of <a href="https://citysec.fi">CitySec</a>
+      </p>
+      <h2>Contact</h2>
+      <p>Interested in <span class="highlight">sponsoring</span> our meetups?<br>
+      You can contact us via email.<br>
+      If you want to join our Signal-channel, please send us an email to get an invitation.</p>
+      <p class="notice">info[at]jysec.fi</p>
+      <p>Follow us on: <a href="https://www.linkedin.com/company/jysecfi" class="url-box">LinkedIn</a></p>
+    </div>
+  </section>
+
+
+  <script>
+    document.querySelector('.arrow')?.addEventListener('click', function(e) {
+      document.getElementById('content').scrollIntoView({ behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>
