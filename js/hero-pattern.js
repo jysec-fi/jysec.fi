@@ -6,8 +6,8 @@
   const ctx = canvas.getContext('2d');
   const TEXT = 'JySec!';
   const FONT_FAMILY = 'PS-55';
-  const FONT_MAX = 32; // cell height on wide screens
-  const FONT_MIN = 18; // cell height on phones
+  const FONT_MAX = 48; // cell height on wide screens
+  const FONT_MIN = 32; // cell height on phones
   const FPS = 12;
   const FADE = 8; // frames spent fading out
   const COLORS = [
@@ -28,15 +28,16 @@
   const rand = (n) => Math.floor(Math.random() * n);
   const pick = (list) => list[rand(list.length)];
 
-  // Grid area covered by the hero title, subtitle and arrow
-  let blocked = null;
+  // Grid areas covered by the hero title, subtitle and arrow
+  let blocked = [];
 
   // Tags may touch but never overlap each other or the hero text
   function isFree(col, row) {
     const end = col + TEXT.length;
     if (col < 0 || end > cols || row < 0 || row >= rows) return false;
-    const b = blocked;
-    if (b && row >= b.top && row <= b.bottom && end > b.left && col <= b.right) return false;
+    for (const b of blocked) {
+      if (row >= b.top && row <= b.bottom && end > b.left && col <= b.right) return false;
+    }
     for (const t of tags) {
       if (t.row === row && end > t.col && col < t.col + TEXT.length) return false;
     }
@@ -75,24 +76,21 @@
     }
   }
 
-  // Keep the middle clear: one box around the title, subtitle and arrow together
+  // Keep tags off each piece of hero text separately, so the clear area hugs
+  // the text instead of forming one big empty box
   function measureBlocked() {
     const origin = canvas.getBoundingClientRect();
-    let top = Infinity, bottom = -Infinity, left = Infinity, right = -Infinity;
+    const areas = [];
     document.querySelectorAll('.hero h1, .hero p, .arrow').forEach(function (el) {
       const r = el.getBoundingClientRect();
-      top = Math.min(top, r.top);
-      bottom = Math.max(bottom, r.bottom);
-      left = Math.min(left, r.left);
-      right = Math.max(right, r.right);
+      areas.push({
+        left: Math.floor((r.left - origin.left - offX) / cellW),
+        right: Math.floor((r.right - origin.left - offX) / cellW),
+        top: Math.floor((r.top - origin.top - offY) / cellH),
+        bottom: Math.floor((r.bottom - origin.top - offY) / cellH)
+      });
     });
-    if (top === Infinity) return null;
-    return {
-      left: Math.floor((left - origin.left - offX) / cellW) - 1,
-      right: Math.floor((right - origin.left - offX) / cellW) + 1,
-      top: Math.floor((top - origin.top - offY) / cellH) - 1,
-      bottom: Math.floor((bottom - origin.top - offY) / cellH) + 1
-    };
+    return areas;
   }
 
   function resize() {
@@ -119,7 +117,7 @@
 
     // Text scales with the screen width but keeps its shape. The grid is
     // centered and overhangs the edges evenly, like a cover image
-    const fontPx = Math.max(FONT_MIN, Math.min(FONT_MAX, Math.round(w / 24)));
+    const fontPx = Math.max(FONT_MIN, Math.min(FONT_MAX, Math.round(w / 12)));
     ctx.font = fontPx + 'px ' + FONT_FAMILY;
     ctx.textBaseline = 'top';
     cellW = Math.round(ctx.measureText('M').width) || fontPx / 2;
