@@ -6,7 +6,7 @@
 
   <link rel="stylesheet" href="https://jysec.fi/css/style.css">
 
-  <title>JySec | Home</title>
+  <title>JySec - Home</title>
 
   
   <link rel="icon" href="https://jysec.fi/images/favicon.png">
@@ -15,43 +15,41 @@
 <body>
   
   <section class="hero">
-    <canvas class="hero-bg" aria-hidden="true"></canvas>
-    <h1>JySec</h1>
-    <p>Cybersecurity Community of Jyväskylä</p>
-    <button class="arrow" type="button" aria-label="Scroll to content">
-      <svg viewBox="0 0 32 18" aria-hidden="true">
-        <path d="M2 2l14 14 14-14"/>
+    <h1>JYSEC</h1>
+    <p>Information & Cyber Security Community of Jyväskylä</p>
+    <div class="arrow">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="round"/>
       </svg>
-    </button>
+    </div>
   </section>
 
-  <section class="content">
+  <section id="content" class="content">
     <div class="content-inner">
       <h2>MEETUPS</h2>
-      <p class="notice">Next meetup TBA</p>
+      <p class="notice">Next meetup to be announced</p>
       <p>Past meetups can be found <a href="/meetups" class="notice">here</a></p>
         
       <h2>WHAT IS JYSEC?</h2>
       <p> 
-      JySec brings together professionals, students and hobbyists in Central Finland who share an interest in cybersecurity. We host meetups and casual get-togethers where people can share ideas, learn from each other and get to know the local community.
+      JySec brings together professionals, students, and hobbyists interested in information and cybersecurity in Central Finland. Our purpose is to organise meetups and get-togethers to share, learn and connect in the field of Cybersecurity. 
       <br><br>
       JySec is part of <a href="https://citysec.fi">CitySec</a>
       </p>
-      <h2>GET INVOLVED</h2>
-      <p>Want to <span class="highlight">give a talk</span>, <span class="highlight">help organise</span> or <span class="highlight">sponsor</span> a meetup?<br>
-      Send us an email.</p>
+      <h2>Contact</h2>
+      <p>Interested in <span class="highlight">sponsoring</span> our meetups?<br>
+      You can contact us via email.<br>
+      If you want to join our Signal-channel, please send us an email to get an invitation.</p>
       <p class="notice">info[at]jysec.fi</p>
       <p>Follow us on: <a href="https://www.linkedin.com/company/jysecfi" class="url-box">LinkedIn</a></p>
     </div>
   </section>
 
   <script>
-    // Scroll down without putting a #fragment in the URL
-    document.querySelector('.arrow').addEventListener('click', function () {
-      document.querySelector('.content').scrollIntoView({ behavior: 'smooth' });
+    document.querySelector('.arrow')?.addEventListener('click', function(e) {
+      document.getElementById('content').scrollIntoView({ behavior: 'smooth' });
     });
   </script>
-  <script src="https://jysec.fi/js/hero-pattern.js" defer></script>
 
 </body>
 </html>
