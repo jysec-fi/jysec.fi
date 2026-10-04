@@ -10,6 +10,9 @@
   const FONT_MIN = 32; // cell height on phones
   const FPS = 12;
   const FADE = 8; // frames spent fading out
+  // Tags may hang this many cells off the left/right edge, so narrow phone
+  // screens still get tags beside the hero text
+  const OVERHANG = 3;
   const COLORS = [
     '#0000aa', '#00aa00', '#00aaaa', '#aa0000', '#aa00aa', '#aa5500', '#aaaaaa',
     '#5555ff', '#55ff55', '#55ffff', '#ff5555', '#ff55ff', '#ffff55', '#ffffff'
@@ -34,7 +37,7 @@
   // Tags may touch but never overlap each other or the hero text
   function isFree(col, row) {
     const end = col + TEXT.length;
-    if (col < 0 || end > cols || row < 0 || row >= rows) return false;
+    if (col < -OVERHANG || end > cols + OVERHANG || row < 0 || row >= rows) return false;
     for (const b of blocked) {
       if (row >= b.top && row <= b.bottom && end > b.left && col <= b.right) return false;
     }
@@ -53,7 +56,7 @@
       }
       return [t.col + rand(TEXT.length * 2 + 1) - TEXT.length, t.row + (Math.random() < 0.5 ? 1 : -1)];
     }
-    return [rand(cols - TEXT.length + 1), rand(rows)];
+    return [rand(cols - TEXT.length + 1 + OVERHANG * 2) - OVERHANG, rand(rows)];
   }
 
   function spawn(age) {
@@ -80,9 +83,19 @@
   // the text instead of forming one big empty box
   function measureBlocked() {
     const origin = canvas.getBoundingClientRect();
+    const rects = [];
+    // Measure each line of the actual text, not the element boxes, which on
+    // phones span the full width and leave no room beside the text
+    document.querySelectorAll('.hero h1, .hero p').forEach(function (el) {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      for (const r of range.getClientRects()) rects.push(r);
+    });
+    document.querySelectorAll('.arrow svg').forEach(function (el) {
+      rects.push(el.getBoundingClientRect());
+    });
     const areas = [];
-    document.querySelectorAll('.hero h1, .hero p, .arrow').forEach(function (el) {
-      const r = el.getBoundingClientRect();
+    rects.forEach(function (r) {
       areas.push({
         left: Math.floor((r.left - origin.left - offX) / cellW),
         right: Math.floor((r.right - origin.left - offX) / cellW),
