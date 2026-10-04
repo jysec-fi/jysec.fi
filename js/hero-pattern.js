@@ -5,8 +5,9 @@
 
   const ctx = canvas.getContext('2d');
   const TEXT = 'JySec!';
-  const FONT = '32px PS-55';
-  const CELL_H = 32;
+  const FONT_FAMILY = 'PS-55';
+  const FONT_MAX = 32; // cell height on wide screens
+  const FONT_MIN = 18; // cell height on phones
   const FPS = 12;
   const FADE = 8; // frames spent fading out
   const COLORS = [
@@ -15,7 +16,11 @@
   ];
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  let cols = 0, rows = 0, cellW = 8, target = 0;
+  let cols = 0, rows = 0, target = 0;
+  let width = 0, height = 0;
+  let cellW = 8, cellH = FONT_MAX;
+  // Where the grid starts; it is centered on the canvas and may hang over the edges
+  let offX = 0, offY = 0;
   let tags = [];
   let timer = null;
   let onScreen = true;
@@ -23,16 +28,15 @@
   const rand = (n) => Math.floor(Math.random() * n);
   const pick = (list) => list[rand(list.length)];
 
-  // Grid areas covered by the hero title, subtitle and arrow
-  let blocked = [];
+  // Grid area covered by the hero title, subtitle and arrow
+  let blocked = null;
 
   // Tags may touch but never overlap each other or the hero text
   function isFree(col, row) {
     const end = col + TEXT.length;
     if (col < 0 || end > cols || row < 0 || row >= rows) return false;
-    for (const b of blocked) {
-      if (row >= b.top && row <= b.bottom && end > b.left && col <= b.right) return false;
-    }
+    const b = blocked;
+    if (b && row >= b.top && row <= b.bottom && end > b.left && col <= b.right) return false;
     for (const t of tags) {
       if (t.row === row && end > t.col && col < t.col + TEXT.length) return false;
     }
@@ -71,29 +75,61 @@
     }
   }
 
+  // Keep the middle clear: one box around the title, subtitle and arrow together
+  function measureBlocked() {
+    const origin = canvas.getBoundingClientRect();
+    let top = Infinity, bottom = -Infinity, left = Infinity, right = -Infinity;
+    document.querySelectorAll('.hero h1, .hero p, .arrow').forEach(function (el) {
+      const r = el.getBoundingClientRect();
+      top = Math.min(top, r.top);
+      bottom = Math.max(bottom, r.bottom);
+      left = Math.min(left, r.left);
+      right = Math.max(right, r.right);
+    });
+    if (top === Infinity) return null;
+    return {
+      left: Math.floor((left - origin.left - offX) / cellW) - 1,
+      right: Math.floor((right - origin.left - offX) / cellW) + 1,
+      top: Math.floor((top - origin.top - offY) / cellH) - 1,
+      bottom: Math.floor((bottom - origin.top - offY) / cellH) + 1
+    };
+  }
+
   function resize() {
-    const dpr = window.devicePixelRatio || 1;
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
+
+    // The canvas is sized in lvh, so mobile URL bar changes leave it alone;
+    // only the text may have moved, so just clear any tags now behind it
+    if (w === width && h === height) {
+      blocked = measureBlocked();
+      const kept = tags;
+      tags = [];
+      for (const t of kept) if (isFree(t.col, t.row)) tags.push(t);
+      draw();
+      return;
+    }
+    width = w;
+    height = h;
+
+    const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.font = FONT;
-    ctx.textBaseline = 'top';
-    cellW = Math.ceil(ctx.measureText('M').width) || 8;
-    cols = Math.floor(w / cellW);
-    rows = Math.floor(h / CELL_H);
 
-    const origin = canvas.getBoundingClientRect();
-    blocked = Array.from(document.querySelectorAll('.hero h1, .hero p, .arrow'), function (el) {
-      const r = el.getBoundingClientRect();
-      return {
-        left: Math.floor((r.left - origin.left) / cellW) - 1,
-        right: Math.floor((r.right - origin.left) / cellW) + 1,
-        top: Math.floor((r.top - origin.top) / CELL_H),
-        bottom: Math.floor((r.bottom - origin.top) / CELL_H)
-      };
-    });
+    // Text scales with the screen width but keeps its shape. The grid is
+    // centered and overhangs the edges evenly, like a cover image
+    const fontPx = Math.max(FONT_MIN, Math.min(FONT_MAX, Math.round(w / 24)));
+    ctx.font = fontPx + 'px ' + FONT_FAMILY;
+    ctx.textBaseline = 'top';
+    cellW = Math.round(ctx.measureText('M').width) || fontPx / 2;
+    cellH = fontPx;
+    cols = Math.ceil(w / cellW) + 1;
+    rows = Math.ceil(h / cellH) + 1;
+    offX = Math.round((w - cols * cellW) / 2);
+    offY = Math.round((h - rows * cellH) / 2);
+
+    blocked = measureBlocked();
     target = Math.round((cols * rows) / 30);
 
     // Start already populated, with tags at random points in their lifetime
@@ -106,15 +142,16 @@
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
     for (const t of tags) {
       const shown = Math.min(TEXT.length, t.age + 1);
-      const x = t.col * cellW;
-      const y = t.row * CELL_H;
+      const x = offX + t.col * cellW;
+      const y = offY + t.row * cellH;
       ctx.globalAlpha = reduceMotion ? 1 : Math.min(1, (t.life - t.age) / FADE);
       if (t.bg) {
         ctx.fillStyle = t.bg;
-        ctx.fillRect(x, y, shown * cellW, CELL_H);
+        ctx.fillRect(x, y, shown * cellW, cellH);
       }
       ctx.fillStyle = t.fg;
-      ctx.fillText(TEXT.slice(0, shown), x, y);
+      // One glyph per cell so the letters line up exactly with the background
+      for (let i = 0; i < shown; i++) ctx.fillText(TEXT[i], x + i * cellW, y);
     }
     ctx.globalAlpha = 1;
   }
@@ -148,7 +185,7 @@
   }).observe(canvas);
 
   // Wait for the DOS font so cell widths are measured correctly
-  document.fonts.load(FONT).finally(function () {
+  document.fonts.load(FONT_MAX + 'px ' + FONT_FAMILY).finally(function () {
     resize();
     update();
   });

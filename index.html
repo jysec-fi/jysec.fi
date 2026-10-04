@@ -18,14 +18,14 @@
     <canvas class="hero-bg" aria-hidden="true"></canvas>
     <h1>JySec</h1>
     <p>Cybersecurity Community of Jyväskylä</p>
-    <a class="arrow" href="#content" aria-label="Scroll to content">
+    <button class="arrow" type="button" aria-label="Scroll to content">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 4v16M5 13l7 7 7-7"/>
       </svg>
-    </a>
+    </button>
   </section>
 
-  <section id="content" class="content">
+  <section class="content">
     <div class="content-inner">
       <h2>MEETUPS</h2>
       <p class="notice">Next meetup to be announced</p>
@@ -45,6 +45,12 @@
     </div>
   </section>
 
+  <script>
+    // Scroll down without putting a #fragment in the URL
+    document.querySelector('.arrow').addEventListener('click', function () {
+      document.querySelector('.content').scrollIntoView({ behavior: 'smooth' });
+    });
+  </script>
   <script src="https://jysec.fi/js/hero-pattern.js" defer></script>
 
 </body>
